@@ -583,7 +583,6 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
                 embed_dim = len(cls_node_idx) - 2
             decomposition_model = UMAP(n_components=embed_dim, n_neighbors=num_cls_nodes // 2 + 1)
 
-            print(poisoned_import_attribute[cls_node_idx].shape, embed_dim)
             train_import_feat = decomposition_model.fit_transform(poisoned_import_attribute[cls_node_idx].detach().cpu().numpy())
             train_import_feat = torch.tensor(train_import_feat).to(device)
             feat_diff_matrix = calc_euc_dis(train_import_feat, train_import_feat)
