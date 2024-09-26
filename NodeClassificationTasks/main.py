@@ -687,4 +687,4 @@ if __name__ == '__main__':
     overall_ca = clean_acc
     benign_model = benign_model.cpu()
     logger.info("ASR: {:.4f} ({} model, Seed: {})".format(overall_asr, args.model, args.seed))
-    logger.info("Clean Accuracy: {:.4f}".format(overall_ca))
+    logger.info("Accuracy: {:.4f}".format(overall_ca))

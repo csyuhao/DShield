@@ -165,3 +165,4 @@ data/*
 wandb/*
 selected_nodes/*
 preprocessed/*
+*.svg

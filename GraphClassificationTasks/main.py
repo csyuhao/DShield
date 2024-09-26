@@ -143,27 +143,27 @@ def main():
         atk_test_dataset = attacker.get_poisoned_rand(atk_test_dataset, np.arange(len(atk_test_dataset)).tolist())
         atk_test_loader = DataLoader(atk_test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False)
         atk_test_loss, atk_test_accuracy = model_test(model, atk_test_loader, criterion, device)
-        logger.info('Backdoored Test Accuracy: {:.2f}'.format(atk_test_accuracy))
+        logger.info('ASR: {:.2f}'.format(atk_test_accuracy))
     elif args.attack_method == 'ExplainBackdoor':
         atk_test_dataset = attacker.get_poisoned(atk_test_dataset, np.arange(len(atk_test_dataset)).tolist())
         atk_test_loader = DataLoader(atk_test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False)
         atk_test_loss, atk_test_accuracy = model_test(model, atk_test_loader, criterion, device)
-        logger.info('Backdoored Test Accuracy: {:.2f}'.format(atk_test_accuracy))
+        logger.info('ASR: {:.2f}'.format(atk_test_accuracy))
     elif args.attack_method == 'GCBA':
         atk_test_dataset = attacker.get_poisoned(atk_test_dataset, np.arange(len(atk_test_dataset)).tolist())
         atk_test_loader = DataLoader(atk_test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False)
         atk_test_loss, atk_test_accuracy = model_test(model, atk_test_loader, criterion, device)
-        logger.info('Backdoored Test Accuracy: {:.2f}'.format(atk_test_accuracy))
+        logger.info('ASR: {:.2f}'.format(atk_test_accuracy))
     elif args.attack_method == 'SBAG':
         atk_test_dataset = attacker.inject_trigger(atk_test_dataset, np.arange(len(atk_test_dataset)).tolist())
         atk_test_loader = DataLoader(atk_test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False)
         atk_test_loss, atk_test_accuracy = model_test(model, atk_test_loader, criterion, device)
-        logger.info('Backdoored Test Accuracy: {:.2f}'.format(atk_test_accuracy))
+        logger.info('ASR: {:.2f}'.format(atk_test_accuracy))
 
     # Normal test model
     clean_test_loader = DataLoader(clean_test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False)
     test_loss, test_accuracy = model_test(model, clean_test_loader, criterion, device)
-    logger.info('Clean Test Accuracy: {:.2f}'.format(test_accuracy))
+    logger.info('Accuracy: {:.2f}'.format(test_accuracy))
 
 
 if __name__ == "__main__":
