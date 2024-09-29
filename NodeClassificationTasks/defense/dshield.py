@@ -457,7 +457,9 @@ def classify(model, optimizer,
         with torch.no_grad():
             output = model(feat, edge_index, edge_weight)
             acc_val = accuracy(output[val_idx], labels[val_idx])
-            asr_val = accuracy(output[neg_node_idx], labels[neg_node_idx])
+            asr_val = 0.0
+            if len(neg_node_idx) > 0:
+                asr_val = accuracy(output[neg_node_idx], labels[neg_node_idx])
             metric_val = 2 * acc_val * (1 - asr_val) / (acc_val + 1 - asr_val)
 
         if epoch > int(0.8 * epochs) and best_metric_val <= metric_val:

@@ -453,7 +453,9 @@ def classify(model, optimizer, datasets, kappa1,
 
         model.eval()
         _, acc_val = model_test(model, test_loader, clf_loss_fn, device)
-        _, asr_val = model_test(model, poisoned_train_loader, clf_loss_fn, device)
+        asr_val = 0.0
+        if len(neg_node_idx) > 0:
+            _, asr_val = model_test(model, poisoned_train_loader, clf_loss_fn, device)
         metric_val = 2 * acc_val * (1 - asr_val) / (acc_val + 1 - asr_val)
 
         if epoch > int(0.8 * epochs) and best_metric_val <= metric_val:
