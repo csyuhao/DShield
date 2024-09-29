@@ -611,6 +611,10 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
                 cls_clu_node_idx = cls_node_idx[clu_labels == clu_id]
                 clu2cls_node_idx[clu_id] = cls_clu_node_idx.cpu().tolist()
 
+                metric_val = torch.std(dist_matrix[clu_labels == clu_id, :][:, clu_labels == clu_id]).item()
+                if metric_val < 1e-2 and clu_id > 0:
+                    clu2cls_node_idx[0].extend(cls_clu_node_idx.cpu().tolist())
+
             for clu_id in range(num_clu_labels):
                 logger.info('Label = {}@Cluster ID = {}@Clu Node Idx = [{}]'.format(
                     c_id, clu_id, ', '.join('{}'.format(n) for n in clu2cls_node_idx[clu_id])
@@ -660,7 +664,12 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
             ))
             list_pos_nodes.extend(cur_list_pos_nodes)
             list_neg_nodes.extend(cur_list_neg_nodes)
-        list_pos_nodes.extend(non_effect_train_node_idx)
+
+        if len(list_neg_nodes) == 0:
+            list_neg_nodes.extend(non_effect_train_node_idx.cpu().tolist())
+        else:
+            list_pos_nodes.extend(non_effect_train_node_idx.cpu().tolist())
+
         train_idx = list_pos_nodes
         neg_node_idx = list_neg_nodes
 
