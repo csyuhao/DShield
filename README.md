@@ -21,7 +21,15 @@ For instance, on the Cora dataset, DShield reduces the attack success rate to 1.
 - Python = 3.10.11
 - Python libraries listed in ```requirements.txt```
 
-We can utilize the following command to install required Python libraries:
+First, install the PyTorch libraries using the following command:
+```bash
+pip install torch==2.0.0+cpu torchaudio==2.0.0+cpu torchvision==0.15.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+```
+Next, install the PyTorch-Geometric libraries with the command:
+```bash
+pip install torch_geometric==2.5.3 torch-cluster==1.6.3+pt20cpu torch-scatter==2.1.2+pt20cpu torch-sparse==0.6.18+pt20cpu torch-spline-conv==1.2.2+pt20cpu -f https://data.pyg.org/whl/torch-2.0.0+cpu.html
+```
+Finally, install the required Python libraries by executing:
 ```bash
 pip install -r requirements.txt
 ```

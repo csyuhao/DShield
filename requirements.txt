@@ -46,14 +46,6 @@ scipy==1.14.1
 six==1.16.0
 sympy==1.13.3
 threadpoolctl==3.5.0
-torch==2.0.0
-torch-cluster==1.6.3+pt20cpu
-torch-scatter==2.1.2+pt20cpu
-torch-sparse==0.6.18+pt20cpu
-torch-spline-conv==1.2.2+pt20cpu
-torch_geometric==2.5.3
-torchaudio==2.0.0
-torchvision==0.15.0
 tqdm==4.66.5
 typing_extensions==4.12.2
 tzdata==2024.2
