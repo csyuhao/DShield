@@ -19,7 +19,9 @@ For instance, on the Cora dataset, DShield reduces the attack success rate to 1.
 
 - Windows 11 (or Ubuntu may)
 - Python = 3.10.11
-- Python libraries listed in ```requirements.txt```
+- PyTorch = 2.0.0
+- PyTorch-Geometric = 2.5.3
+- Other Python libraries listed in ```requirements.txt```
 
 First, install the PyTorch libraries using the following command:
 ```bash
@@ -100,7 +102,7 @@ python viz_main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --
 python viz_main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=10 --use_vs_number --target_class=1 --selection_method=clean_label --attack_method=PerCBA --percba_trojan_epochs=300 --percba_perturb_epochs=200 --percba_mu=0.01 --percba_eps=0.5 --percba_feat_budget=200 --defense_method=none
 ```
 
-## Performance on various attacks
+## E2: Performance on Various Attacks
 
 ### Cora Dataset
 
@@ -156,7 +158,7 @@ python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --tr
 ```
 
 
-## Performance on Adaptive Attacks
+## E3: Performance on Adaptive Attacks
 
 1. DShield against UGBA+LGCB attack on the Cora dataset
 
@@ -190,7 +192,7 @@ python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trig
 ```
 
 
-### Attacks on graph classification tasks
+### E4: Attacks on Graph Classification tasks
 
 1. DShield against G-SBA attacks on the ENZYMES dataset
 
