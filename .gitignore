@@ -161,8 +161,8 @@ cython_debug/
 __init__.py
 
 
-data/*
-wandb/*
-selected_nodes/*
+NodeClassificationTasks/data/*
+GraphClassificationTasks/data/*
+NodeClassificationTasks/selected_nodes/*
 preprocessed/*
 *.svg

@@ -424,7 +424,7 @@ def classify(model, optimizer, datasets, kappa1,
     normal_train_loader = DataLoader([datasets[i] for i in pos_node_idx], batch_size=batch_size, shuffle=True)
     poisoned_train_loader = DataLoader([datasets[i] for i in neg_node_idx], batch_size=batch_size, shuffle=True)
 
-    best_metric_val, best_round, best_state_dict = 0., 0, copy.deepcopy(model.state_dict())
+    best_acc_val, best_asr, best_balance_metric, best_round, best_state_dict = 0., 0., 0., 0, copy.deepcopy(model.state_dict())
     for epoch in range(1, epochs + 1):
         model.train()
 
@@ -453,13 +453,13 @@ def classify(model, optimizer, datasets, kappa1,
 
         model.eval()
         _, acc_val = model_test(model, test_loader, clf_loss_fn, device)
-        asr_val = 0.0
-        if len(neg_node_idx) > 0:
-            _, asr_val = model_test(model, poisoned_train_loader, clf_loss_fn, device)
-        metric_val = 2 * acc_val * (1 - asr_val) / (acc_val + 1 - asr_val)
+        _, asr = model_test(model, poisoned_train_loader, clf_loss_fn, device)
+        balance_metric = 2 * (acc_val * (1 - asr)) / (acc_val + (1 - asr) + 1e-6)
 
-        if epoch > int(0.8 * epochs) and best_metric_val <= metric_val:
-            best_metric_val = metric_val
+        if epoch > int(0.8 * epochs) and best_balance_metric <= balance_metric:
+            best_balance_metric = balance_metric
+            best_acc_val = acc_val
+            best_asr = asr
             best_state_dict = copy.deepcopy(model.state_dict())
             best_round = epoch
         mean_loss, mean_loss_pos, mean_loss_neg = mean_loss / len(normal_train_loader), \
@@ -471,7 +471,7 @@ def classify(model, optimizer, datasets, kappa1,
                     epoch, mean_loss, mean_loss_pos, mean_loss_neg
             ))
 
-    logger.info('Best Round = {}@Best Metric = {:.4f}'.format(best_round, best_metric_val))
+    logger.info('Best Round = {}@Best ACC = {:.4f}@Best ASR = {:4f}'.format(best_round, best_acc_val, best_asr))
     model.load_state_dict(best_state_dict)
     return model
 
@@ -494,34 +494,13 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
     pretrain_model = UnsupervisedModel(input_dim=feat_dim, hidden_dim=hidden_dim,
                                        proj_dim=hidden_dim // 2, arch='GCN').to(device)
 
-    # Obtain correctly classified nodes
-    poisoned_model.eval()
-    with torch.no_grad():
-        train_loader = DataLoader(datasets, batch_size=batch_size, shuffle=False, drop_last=False)
-        all_node_mask = None
-        for idx, data in enumerate(train_loader):
-            data = data.to(device)
-            poisoned_logits = poisoned_model(data.x, data.edge_index, batch=data.batch)
-            poisoned_pred = torch.argmax(poisoned_logits, dim=-1)
-            node_mask = torch.eq(poisoned_pred, data.y).cpu().numpy()
-            all_node_mask = node_mask if all_node_mask is None else np.concatenate([all_node_mask, node_mask], axis=0)
-    train_node_idx = np.arange(len(datasets))
-    effect_train_node_idx = train_node_idx[all_node_mask].tolist()
-    non_effect_train_node_idx = train_node_idx[~all_node_mask].tolist()
-
-    non_effect_datasets = [datasets[i] for i in non_effect_train_node_idx]
-    effect_datasets = [datasets[i] for i in effect_train_node_idx]
-    old2new = {old: new for new, old in enumerate(effect_train_node_idx)}
-    non_effect_train_node_idx = [i + len(effect_datasets) for i in range(len(non_effect_datasets))]
-    attach_idx = np.array([old2new[i] for i in attach_idx if all_node_mask[i].item() is True])
-
     # SSL Training
     optimizer = optim.Adam(pretrain_model.rtn_encoder_param(), lr=lr, weight_decay=weight_decay)
     pretrain_model = pretrain(pretrain_model, optimizer,
-                              (aug1, aug2), effect_datasets, batch_size, tau, pretrain_epochs, device)
+                              (aug1, aug2), datasets, batch_size, tau, pretrain_epochs, device)
 
     # Pick up the consistency of similarities among nodes with the same label
-    poisoned_embeddings = obtain_mid_embeddings(poisoned_model, effect_datasets, batch_size, device)
+    poisoned_embeddings = obtain_mid_embeddings(poisoned_model, datasets, batch_size, device)
 
     # Conduct classify
     classify_model = copy.deepcopy(poisoned_model)
@@ -531,7 +510,7 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
     logger.info('Malicious Nodes = [{}]'.format(', '.join('{}'.format(n) for n in list_attach_node_idx)))
 
     # Get attribute importance
-    _, attribute_import_list = attribute_importance(poisoned_model, effect_datasets, batch_size, device)
+    _, attribute_import_list = attribute_importance(poisoned_model, datasets, batch_size, device)
 
     n_round = 0
     while n_round < classify_rounds:
@@ -539,13 +518,13 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
 
         pretrain_model.eval()
         with torch.no_grad():
-            ssl_embeddings = obtain_ssl_embeddings(pretrain_model, effect_datasets, batch_size, device)
+            ssl_embeddings = obtain_ssl_embeddings(pretrain_model, datasets, batch_size, device)
 
         # check each class
         poisoned_import_attribute = []
-        for idx in range(len(effect_datasets)):
+        for idx in range(len(datasets)):
             poisoned_import_attribute.append(
-                torch.reshape(attribute_import_list[idx] * effect_datasets[idx].x, shape=(1, -1))[:, :feat_dim]
+                torch.reshape(attribute_import_list[idx] * datasets[idx].x, shape=(1, -1))[:, :feat_dim]
             )
         poisoned_import_attribute = torch.cat(poisoned_import_attribute, dim=0)
 
@@ -555,7 +534,7 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
 
             # Pick up nodes with `c_id` class
             cls_node_idx = torch.tensor(
-                [idx for idx in range(len(effect_datasets)) if effect_datasets[idx].y.item() == c_id],
+                [idx for idx in range(len(datasets)) if datasets[idx].y.item() == c_id],
                 dtype=torch.long, device=device
             )
             num_cls_nodes = cls_node_idx.shape[0]
@@ -643,7 +622,7 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
 
             # Calculate the distance between positive and negative nodes
             inter_dist = obtain_sample_inter_relationship(
-                poisoned_model, effect_datasets, c_id, all_pos_nodes, class2list_pos_nodes[c_id],
+                poisoned_model, datasets, c_id, all_pos_nodes, class2list_pos_nodes[c_id],
                 class2list_neg_nodes[c_id], epochs=finetune_epochs, batch_size=batch_size, lr=lr, weight_decay=weight_decay, device=device
             )
 
@@ -665,11 +644,6 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
             list_pos_nodes.extend(cur_list_pos_nodes)
             list_neg_nodes.extend(cur_list_neg_nodes)
 
-        if len(list_neg_nodes) == 0:
-            list_neg_nodes.extend(non_effect_train_node_idx.cpu().tolist())
-        else:
-            list_pos_nodes.extend(non_effect_train_node_idx.cpu().tolist())
-
         train_idx = list_pos_nodes
         neg_node_idx = list_neg_nodes
 
@@ -681,7 +655,6 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
                 len(set(list_neg_nodes) & set(attach_idx.tolist())))
         )
 
-        datasets = effect_datasets + non_effect_datasets
         classify_model = classify(
             classify_model, optimizer, datasets, kappa1, train_idx, neg_node_idx, test_loader, classify_epochs, batch_size, device
         )

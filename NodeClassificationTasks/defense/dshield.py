@@ -425,28 +425,32 @@ def pretrain(model: UnsupervisedModel, optimizer, augmentor,
 
 
 def classify(model, optimizer,
-             feat, edge_index, edge_weight, labels, kappa3, pos_node_idx, neg_node_idx, val_idx, epochs=100):
+             feat, edge_index, edge_weight, labels, kappa3, pos_node_idx, neg_node_idx, val_idx, attach_idx, epochs=100):
 
     model.initialize()
     model.train()
     device = feat.device
 
+    _, neg_edge_index, _, edge_mask = k_hop_subgraph(neg_node_idx, num_hops=1,
+                                                     edge_index=edge_index, num_nodes=feat.shape[0], relabel_nodes=False)
+    neg_edge_weight = edge_weight[edge_mask]
     clf_loss_fn = nn.CrossEntropyLoss(reduction='mean')
-
-    best_metric_val, best_round, best_state_dict = 0., 0, copy.deepcopy(model.state_dict())
+    best_acc_val, best_asr, best_balance_metric, best_round, best_state_dict = 0., 0., 0., 0, copy.deepcopy(model.state_dict())
     for epoch in range(1, epochs + 1):
         model.train()
         optimizer.zero_grad()
 
         # Classification
         pos_logits = model(feat, edge_index, edge_weight)
-        loss_pos, loss_neg = torch.tensor(0, dtype=torch.float32, device=device), torch.tensor(0, dtype=torch.float32, device=device)
+        neg_logits = model(feat, neg_edge_index, neg_edge_weight)
+        loss_pos, loss_neg = torch.tensor(0, dtype=torch.float32, device=device), \
+            torch.tensor(0, dtype=torch.float32, device=device)
         loss_clf_pos, loss_clf_neg = loss_pos, loss_neg
         if pos_node_idx.shape[0] > 0:
             loss_clf_pos = clf_loss_fn(pos_logits[pos_node_idx], labels[pos_node_idx])
             loss_pos = torch.where(loss_clf_pos < 5, torch.exp(loss_clf_pos) - 1., loss_clf_pos)
         if neg_node_idx.shape[0] > 0:
-            loss_clf_neg = clf_loss_fn(pos_logits[neg_node_idx], labels[neg_node_idx]) + 1.0
+            loss_clf_neg = clf_loss_fn(neg_logits[neg_node_idx], labels[neg_node_idx]) + 1.0
             loss_neg = torch.where(loss_clf_neg < 1e27, torch.log(loss_clf_neg), loss_clf_neg)
         loss = loss_pos - kappa3 * loss_neg
 
@@ -454,16 +458,15 @@ def classify(model, optimizer,
         optimizer.step()
 
         model.eval()
-        with torch.no_grad():
-            output = model(feat, edge_index, edge_weight)
-            acc_val = accuracy(output[val_idx], labels[val_idx])
-            asr_val = 0.0
-            if len(neg_node_idx) > 0:
-                asr_val = accuracy(output[neg_node_idx], labels[neg_node_idx])
-            metric_val = 2 * acc_val * (1 - asr_val) / (acc_val + 1 - asr_val)
+        output = model(feat, edge_index, edge_weight)
+        acc_val = accuracy(output[val_idx], labels[val_idx])
+        asr = accuracy(output[attach_idx], labels[attach_idx])
+        balance_metric = 2 * (acc_val * (1 - asr)) / (acc_val + (1 - asr) + 1e-6)
 
-        if epoch > int(0.8 * epochs) and best_metric_val <= metric_val:
-            best_metric_val = metric_val
+        if epoch > int(0.8 * epochs) and best_balance_metric <= balance_metric:
+            best_balance_metric = balance_metric
+            best_acc_val = acc_val
+            best_asr = asr
             best_state_dict = copy.deepcopy(model.state_dict())
             best_round = epoch
 
@@ -472,7 +475,7 @@ def classify(model, optimizer,
                 'Classify@Epoch = {}@Loss = {:.4f}@Loss Clf[P] = {:.4f}@Loss Clf[N] = {:.4f}'.format(
                     epoch, loss.item(), loss_clf_pos.mean().item(), loss_clf_neg.mean().item()
             ))
-    logger.info('Best Round = {}@Best Metric = {:.4f}'.format(best_round, best_metric_val))
+    logger.info('Best Round = {}@Best ACC = {:.4f}@Best ASR = {:4f}'.format(best_round, best_acc_val, best_asr))
     model.load_state_dict(best_state_dict)
     return model
 
@@ -696,15 +699,6 @@ def dshield(poisoned_model, feat, edge_index, edge_weight, labels,
     if edge_weight is None:
         edge_weight = torch.ones([edge_index.shape[1]], device=device, dtype=torch.float32)
 
-    # Obtain correctly classified nodes
-    poisoned_model.eval()
-    with torch.no_grad():
-        poisoned_logits = poisoned_model(feat, edge_index, edge_weight)
-        poisoned_pred = torch.argmax(poisoned_logits[train_node_idx], dim=-1)
-        node_mask = torch.eq(poisoned_pred, labels[train_node_idx])
-    effect_train_node_idx = train_node_idx[node_mask]
-    non_effect_train_node_idx = train_node_idx[torch.logical_not(node_mask)]
-
     # Augment operators
     aug1 = Compose([
         FeatureMasking(pf=feature_drop_ratio),
@@ -729,11 +723,11 @@ def dshield(poisoned_model, feat, edge_index, edge_weight, labels,
     optimizer = optim.Adam(chain(pretrain_model.rtn_encoder_param(), pretrain_model.rtn_contra_param()), lr=lr, weight_decay=weight_decay)
     pretrain_model = pretrain(pretrain_model, optimizer,
                               (aug1, aug2), feat, edge_index, edge_weight,
-                              effect_train_node_idx, attribute_import, edge_sims, feature_drop_ratio, kappa1, kappa2, tau, pretrain_epochs, dataset)
+                              train_node_idx, attribute_import, edge_sims, feature_drop_ratio, kappa1, kappa2, tau, pretrain_epochs, dataset)
 
     # Pick up the consistency of similarities among nodes with the same label
     poisoned_embeddings = obtain_mid_embeddings(poisoned_model, feat, edge_index)
-    train_labels = labels[effect_train_node_idx]
+    train_labels = labels[train_node_idx]
 
     # Conduct classify
     classify_model = copy.deepcopy(poisoned_model)
@@ -756,7 +750,7 @@ def dshield(poisoned_model, feat, edge_index, edge_weight, labels,
         dist_diff_gain_list, feat_diff_gain_list = [], []
         for c_id in range(num_classes):
             # Pick up nodes with `c_id` class
-            cls_node_idx = effect_train_node_idx[train_labels == c_id]
+            cls_node_idx = train_node_idx[train_labels == c_id]
             num_cls_nodes = cls_node_idx.shape[0]
             if num_cls_nodes < 4:
                 dist_diff_gain_list.append(0.0)
@@ -864,7 +858,6 @@ def dshield(poisoned_model, feat, edge_index, edge_weight, labels,
             list_pos_nodes.extend(cur_list_pos_nodes)
             list_neg_nodes.extend(cur_list_neg_nodes)
 
-        list_pos_nodes.extend(non_effect_train_node_idx.cpu().tolist())
         pos_node_idx = torch.tensor(list_pos_nodes, dtype=torch.long, device=device)
         neg_node_idx = torch.tensor(list_neg_nodes, dtype=torch.long, device=device)
 
@@ -880,7 +873,7 @@ def dshield(poisoned_model, feat, edge_index, edge_weight, labels,
         train_idx = pos_node_idx
         classify_model = classify(
             classify_model, optimizer,
-            feat, edge_index, edge_weight, labels, kappa3, train_idx, neg_node_idx, val_idx, classify_epochs
+            feat, edge_index, edge_weight, labels, kappa3, train_idx, neg_node_idx, val_idx, neg_node_idx, classify_epochs
         )
 
     if rtn_node_idx is True:

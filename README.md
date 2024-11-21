@@ -148,7 +148,7 @@ python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --tr
 3. DShield against GCBA attack 
 
 ```Python
-python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --trigger_size=3 --vs_number=40 --use_vs_number --target_class=1 --selection_method=clean_label --attack_method=GCBA --gcba_num_hidden=512 --gcba_feat_budget=100 --gcba_trojan_epochs=300 --gcba_ssl_tau=0.8 --gcba_tau=0.2 --gcba_edge_drop_ratio=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=1
+python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --trigger_size=3 --vs_number=40 --use_vs_number --target_class=1 --selection_method=clean_label --attack_method=GCBA --gcba_num_hidden=512 --gcba_feat_budget=100 --gcba_trojan_epochs=300 --gcba_ssl_tau=0.8 --gcba_tau=0.2 --gcba_edge_drop_ratio=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
 ```
 
 4. DShield against PerCBA attack 
@@ -163,9 +163,8 @@ python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --tr
 1. DShield against UGBA+LGCB attack on the Cora dataset
 
 ```Python
-python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=20 --use_vs_number --target_class=1-2 --selection_method=mixture --attack_method=UGBA-LGCB --UGBA_thrd=0.5 --ugba_trojan_epochs=200 --ugba_inner_epochs=5 --ugba_target_loss_weight=5 --ugba_homo_loss_weight=50 --ugba_homo_boost_thrd=1.0 --lgcb_num_budgets=200 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=20 --use_vs_number --target_class=1-2 --selection_method=mixture --attack_method=UGBA-LGCB --UGBA_thrd=0.5 --ugba_trojan_epochs=200 --ugba_inner_epochs=5 --ugba_target_loss_weight=5 --ugba_homo_loss_weight=50 --ugba_homo_boost_thrd=1.0 --lgcb_num_budgets=200 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
 ```
-
 
 2. DShield against UGBA+GCBA attack on the Cora dataset
 
@@ -182,7 +181,7 @@ python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trig
 4. DShield against AdaDA attacks on the Cora dataset
 
 ```Python
-python main.py --seed=1028 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=10 --use_vs_number --target_class=1 --selection_method=cluster_degree --attack_method=AdaDA --adada_thrd=0.5 --adada_trojan_epochs=200 --adada_inner_epochs=5 --adada_target_loss_weight=5 --adada_homo_loss_weight=50 --adada_homo_boost_thrd=1.0 --adaba_reg_loss_weight=100 --adaba_ssl_tau=0.2 --adaba_edge_drop_ratio=0.2  --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.05 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=10 --use_vs_number --target_class=1 --selection_method=cluster_degree --attack_method=AdaDA --adada_thrd=0.5 --adada_trojan_epochs=200 --adada_inner_epochs=5 --adada_target_loss_weight=5 --adada_homo_loss_weight=50 --adada_homo_boost_thrd=1.0 --adaba_reg_loss_weight=100 --adaba_ssl_tau=0.2 --adaba_edge_drop_ratio=0.2  --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.05 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
 ```
 
 5. DShield against AdaCA attacks on the Cora dataset
@@ -191,6 +190,23 @@ python main.py --seed=1028 --model=GCN --dataset=Cora --benign_epochs=200 --trig
 python main.py --seed=1027 --model=GCN --dataset=Cora --benign_epochs=200 --trigger_size=3 --vs_number=10 --use_vs_number --target_class=1 --selection_method=clean_label --attack_method=AdaCA --adaca_num_hidden=512 --adaca_feat_budget=100 --adaca_trojan_epochs=300 --adaca_umap_epochs=10 --adaca_ssl_tau=0.8 --adaca_tau=0.2 --adaca_edge_drop_ratio=0.5 --adaca_reg_loss_weight=50 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=1
 ```
 
+6. DShield against UGBA+GCBA attack on the PubMed dataset
+
+```Python
+python main.py --seed=1027 --model=GCN --dataset=Pubmed --benign_epochs=200 --trigger_size=3 --vs_number=80 --use_vs_number --target_class=1-2 --selection_method=mixture --attack_method=UGBA-GCBA --ugba_thrd=0.5 --ugba_trojan_epochs=200 --ugba_inner_epochs=5 --ugba_target_loss_weight=5 --ugba_homo_loss_weight=50 --ugba_homo_boost_thrd=1.0 --gcba_num_hidden=512 --gcba_feat_budget=100 --gcba_trojan_epochs=300 --gcba_ssl_tau=0.8 --gcba_tau=0.2 --gcba_edge_drop_ratio=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=0.1 
+```
+
+7. DShield against UGBA+GCBA attack on the Flickr dataset
+
+```Python
+python main.py --seed=1027 --model=GCN --dataset=Flickr --benign_epochs=200 --trigger_size=3 --vs_number=160 --use_vs_number --target_class=1-2 --selection_method=mixture --attack_method=UGBA-LGCB --ugba_thrd=0.5 --ugba_trojan_epochs=200 --ugba_inner_epochs=5 --ugba_target_loss_weight=5 --ugba_homo_loss_weight=50 --ugba_homo_boost_thrd=1.0 --lgcb_num_budgets=200 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+```
+
+8. DShield against UGBA+LGCB attack on the OGBN-arXiv dataset
+
+```Python
+python main.py --seed=1027 --model=GCN --dataset=ogbn-arxiv --benign_epochs=200 --trigger_size=3 --vs_number=320 --use_vs_number --target_class=1-2 --selection_method=mixture --attack_method=UGBA-LGCB --ugba_thrd=0.5 --ugba_trojan_epochs=200 --ugba_inner_epochs=5 --ugba_target_loss_weight=5 --ugba_homo_loss_weight=50 --ugba_homo_boost_thrd=1.0 --lgcb_num_budgets=100 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_kappa1=5 --dshield_kappa2=5 --dshield_kappa3=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+```
 
 ### E4: Attacks on Graph Classification tasks
 
@@ -210,4 +226,16 @@ python main.py --seed=1027 --model=GCN --dataset=ENZYMES --benign_epochs=200 --t
 
 ```Python
 python main.py --seed=1027 --model=GCN --dataset=ENZYMES --benign_epochs=200 --trigger_size=20 --vs_ratio=0.1 --target_class=1 --attack_method=GCBA --eb_trig_feat_val=-1.0 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=400 --dshield_neg_epochs=100 --dshield_kappa1=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+```
+
+4. DShield against G-SBA attacks on the PROTEINS dataset
+
+```Python
+python main.py --seed=1027 --model=GCN --dataset=PROTEINS --benign_epochs=200 --trigger_size=20 --vs_ratio=0.1 --target_class=1 --attack_method=SBA --sba_attack_method=Rand_Gene --sba_trigger_prob=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=200 --dshield_neg_epochs=100 --dshield_kappa1=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
+```
+
+4. DShield against G-SBA attacks on the MNIST dataset
+
+```Python
+python main.py --seed=1027 --model=GCN --dataset=MNIST --benign_epochs=200 --trigger_size=20 --vs_ratio=0.1 --target_class=1 --batch_size=256 --attack_method=SBA --sba_attack_method=Rand_Gene --sba_trigger_prob=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=200 --dshield_neg_epochs=100 --dshield_kappa1=0.01 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
 ```
