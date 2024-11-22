@@ -44,7 +44,10 @@ def main():
     if args.attack_method == 'SBAG':
         use_node_attr = True
     dataset, num_features, num_classes = get_dataset(args.dataset, use_node_attr)
-    num_node_attributes, num_node_labels = dataset.num_node_attributes, dataset.num_node_labels
+    if args.dataset in ['ENZYMES', 'PROTEINS']:
+        num_node_attributes, num_node_labels = dataset.num_node_attributes, dataset.num_node_labels
+    else:
+        num_node_attributes, num_node_labels = 1, 10
     logger.info('The number of dataset graphs: {}, features: {}, classes: {}'.format(len(dataset), num_features, num_classes))
     train_dataset, clean_test_dataset, atk_test_dataset = get_split(dataset, test_size=0.2, seed=args.seed)
     train_dataset = [data.to(device) for data in train_dataset]

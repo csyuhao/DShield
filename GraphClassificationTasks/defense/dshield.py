@@ -581,7 +581,9 @@ def dshield(poisoned_model, datasets, attach_idx, feat_dim, hidden_dim, num_clas
             emb_clusterer = HDBSCAN(
                 min_cluster_size=num_cls_nodes // 2 + 1, min_samples=1, allow_single_cluster=True, metric='precomputed', n_jobs=-1
             )
-            clu_labels = emb_clusterer.fit_predict(dist_matrix.cpu().numpy()) + 1
+            np_dist_matrix = dist_matrix.cpu().numpy()
+            np_dist_matrix = (np_dist_matrix + np_dist_matrix.T) / 2
+            clu_labels = emb_clusterer.fit_predict(np_dist_matrix) + 1
             clu_labels = torch.tensor(clu_labels, dtype=torch.int64, device=device)
 
             clu2cls_node_idx = {}
