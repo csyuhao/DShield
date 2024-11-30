@@ -16,14 +16,14 @@ Compared with 6 state-of-the-art defenses under 17 typical attacks, we conduct e
 For instance, on the Cora dataset, DShield reduces the attack success rate to 1.33\% from 54.47\% achieved by the second-best defense Prune while maintaining an 82.15\% performance on normal nodes.
 
 ## Requirements
-
+The code can run in non-GPU environments, albeit at a slower speed, and performs much faster when run on GPU-equipped systems.
 - Windows 11 (or Ubuntu may)
 - Python = 3.10.11
 - PyTorch = 2.0.0
 - PyTorch-Geometric = 2.5.3
 - Other Python libraries listed in ```requirements.txt```
 
-First, install the PyTorch libraries using the following command:
+First, install the PyTorch libraries (version 2.0.0) using the following command:
 ```bash
 pip install torch==2.0.0+cpu torchaudio==2.0.0+cpu torchvision==0.15.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 ```
@@ -35,6 +35,7 @@ Finally, install the required Python libraries by executing:
 ```bash
 pip install -r requirements.txt
 ```
+Note that you can also enable GPU support for PyTorch by substituting `+cpu` with `+cu1xx` (for example, `+cu102`) in the commands mentioned above.
 
 
 ## File Architecture
