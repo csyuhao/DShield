@@ -239,3 +239,24 @@ python main.py --seed=1027 --model=GCN --dataset=PROTEINS --benign_epochs=200 --
 ```Python
 python main.py --seed=1027 --model=GCN --dataset=MNIST --benign_epochs=200 --trigger_size=20 --vs_ratio=0.1 --target_class=1 --batch_size=256 --attack_method=SBA --sba_attack_method=Rand_Gene --sba_trigger_prob=0.5 --defense_method=DShield --dshield_pretrain_epochs=400 --dshield_finetune_epochs=400 --dshield_classify_epochs=200 --dshield_neg_epochs=100 --dshield_kappa1=0.1 --dshield_edge_drop_ratio=0.20 --dshield_feature_drop_ratio=0.20 --dshield_tau=0.9 --dshield_balance_factor=0.5 --dshield_classify_rounds=1 --dshield_thresh=2.5
 ```
+
+
+## Citation
+
+If you find this work useful, please consider citing it:
+
+```latex
+@inproceedings{yu2024dshield,
+  author       = {Hao Yu and
+                  Chuan Ma and
+                  Xinhang Wan and
+                  Jun Wang and
+                  Tao Xiang and
+                  Meng Shen and
+                  Xinwang Liu},
+  title        = {DShield: Defending against Backdoor Attacks on Graph Neural Networks via Discrepancy Learning},
+  booktitle    = {{NDSS}},
+  publisher    = {The Internet Society},
+  year         = {2025}
+}
+```
